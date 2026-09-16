@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "nanokvmctl"
+version = "0.1.0"
+description = "Power/reset/virtual-media/boot control for a Sipeed NanoKVM"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = [
+    "nanokvm>=1.2.0",
+    "aiohttp",
+]
+
+[project.scripts]
+nanokvmctl = "nanokvmctl.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["nanokvmctl"]
