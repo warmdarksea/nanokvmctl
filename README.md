@@ -1,5 +1,7 @@
 # nanokvmctl
 
+🚨🤖 AI slopware alert, LLM-generated code/prose follow. sorry...! i'll hopefully rewrite at least the prose at some point. the program seems to work fine though. but i thought i should mention it.
+
 A small CLI for remotely controlling a server managed by a **Sipeed NanoKVM**:
 ATX power/reset, power-state, virtual media (list/mount/unmount/delete), HTTP image
 upload, and a one-shot "arm + reboot into" flow. It's a thin wrapper over
