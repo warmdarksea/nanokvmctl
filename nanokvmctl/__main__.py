@@ -28,8 +28,12 @@ def build_parser() -> argparse.ArgumentParser:
                    help=f"NanoKVM base URL or host (default: {DEFAULT_ENDPOINT})")
     p.add_argument("-u", "--username", default=_os.environ.get("NANOKVMCTL_USERNAME", "admin"),
                    help="login user (default: admin, or $NANOKVMCTL_USERNAME)")
-    p.add_argument("-p", "--password", default=_os.environ.get("NANOKVMCTL_PASSWORD"),
-                   help="login password (default: $NANOKVMCTL_PASSWORD, else prompt)")
+    p.add_argument("-p", "--password",
+                   help="login password. Visible in ps(1)/shell history -- prefer "
+                        "$NANOKVMCTL_PASSWORD or --password-file for anything "
+                        "running unattended.")
+    p.add_argument("--password-file", metavar="PATH",
+                   help="read the password from PATH (first line; '-' for stdin)")
     p.add_argument("--insecure", action="store_true",
                    help="do not verify the TLS certificate (NanoKVM ships a self-signed cert)")
 
@@ -78,8 +82,31 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
+def _resolve_password(args: argparse.Namespace) -> str:
+    """Password, in precedence order: --password, --password-file, env, prompt."""
+    if args.password:
+        return args.password
+
+    if args.password_file:
+        if args.password_file == "-":
+            pw = sys.stdin.readline()
+        else:
+            with open(args.password_file, "r", encoding="utf-8") as fh:
+                pw = fh.readline()
+        pw = pw.rstrip("\n")
+        if not pw:
+            raise SystemExit(f"empty password in {args.password_file!r}")
+        return pw
+
+    pw = _os.environ.get("NANOKVMCTL_PASSWORD")
+    if pw:
+        return pw
+
+    return getpass.getpass("NanoKVM password: ")
+
+
 async def _run(args: argparse.Namespace) -> int:
-    password = args.password or getpass.getpass("NanoKVM password: ")
+    password = _resolve_password(args)
     # request_timeout is generous so multi-MB image uploads don't hit the default 10s.
     async with NanoKVMCtlClient(_api_base(args.endpoint), verify_ssl=not args.insecure,
                                 request_timeout=900) as client:

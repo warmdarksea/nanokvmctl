@@ -24,7 +24,7 @@ nix develop           # dev shell with nanokvmctl + the nanokvm lib on PATH
 ## Usage
 
 ```sh
-export NANOKVMCTL_PASSWORD=...        # or you'll be prompted
+export NANOKVMCTL_PASSWORD=...        # or -p / --password-file, or you'll be prompted
 EP=https://10.217.176.172             # or $NANOKVMCTL_ENDPOINT
 
 nanokvmctl --endpoint $EP --insecure power status
@@ -53,7 +53,22 @@ nanokvmctl ... info
 
 - `NANOKVMCTL_ENDPOINT` — default endpoint (else pass `--endpoint`).
 - `NANOKVMCTL_USERNAME` — default `admin`.
-- `NANOKVMCTL_PASSWORD` — password (else prompted).
+- `NANOKVMCTL_PASSWORD` — password.
+
+Four ways to supply it, in precedence order:
+
+```sh
+nanokvmctl -p hunter2 ...                             # flag
+nanokvmctl --password-file ~/.config/nanokvm.pw ...   # first line of a file
+nanokvmctl --password-file - ... < secret             # stdin
+NANOKVMCTL_PASSWORD=... nanokvmctl ...                # environment
+nanokvmctl ...                                        # else: interactive prompt
+```
+
+`-p` is fine interactively, but it shows up in `ps(1)` and shell history, so for
+anything unattended prefer the env var or `--password-file`. The latter pairs
+with systemd credentials (`--password-file "$CREDENTIALS_DIRECTORY/nanokvm"`)
+and password managers (`pass show kvm | nanokvmctl --password-file - ...`).
 
 ## Reaching a socket-only endpoint
 
